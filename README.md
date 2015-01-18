@@ -14,3 +14,7 @@ kann man nach den folgenden 'High-Low Tech' Anleitungen verfahren: 'Programming 
 Arduino' (http://highlowtech.org/?p=1695) resp. 'Arduino board as ATtiny programmer' 
 (http://highlowtech.org/?p=1706). Dazu muss die Arduino IDE mit der ATtiny Unterstuetzung  
 (https://github.com/damellis/attiny) ausgestattet werden. 
+
+Verwendete Werkzeuge:
+ - Arduino IDE Version 1.0.4 http://arduino.cc/
+ - Fritzing Version 0.9.1 http://fritzing.org/
