@@ -2,11 +2,12 @@
  * 17-Jan-2015
  * Christoph Kummer
  * 
- * WasserSteuerung / Version 1.1: 
+ * WasserSteuerung / Version 1.2: 
  *      Diese Applikation soll mittels eines Sensors erkennen ob der Kanister bereist voll ist und 
  *      entsprechend das Magnetventil schliessen. Der Sensor besteht lediglich aus zwei Draehten  
  *      (eine Masse und der zweite am Analog/Digital-Wander angeschlossen). Weitere Informationen sind 
  *      im Wiki unter: https://github.com/chkummer/WasserSteuerung/wiki zu finden.
+ *      bootloader fuse (boards.txt) low=0xe2, high=0xdc, ext=0xff
  */
 
 #include <SoftwareSerial.h>
@@ -14,17 +15,19 @@
 /* 
  * Pin definitionen 
  */
-SoftwareSerial mySerial(4, 3); // RX, TX
 
-/* Pin definitionen fuer Arduino Duemilanove (Entwicklung) */
+/* Pin definitionen fuer Arduino Duemilanove (Entwicklung)
+ SoftwareSerial mySerial(4, 3); // RX, TX
  const byte waterValve = 10;
  const byte waterSensor = A0;
+ */
 
-/* Pin definitionen fuer ATtiny (Produkt)
- const byte waterValve = 4;
+/* Pin definitionen fuer ATtiny (Produkt)  */
+ SoftwareSerial mySerial(4, 3); // RX, TX
+ const byte waterValve = 0;
  const byte waterSensor = A1;
-*/
-
+ 
+ 
 /*
  * Variablen
  */
@@ -36,27 +39,34 @@ int maxDifference = 400; //A diff of more than 100 in the analog value will trig
 
 void setup()
 {
+  delay(500);
+
   pinMode(waterValve, OUTPUT);
 
   pinMode(waterSensor, INPUT);
   //pinMode(waterSensor, INPUT_PULLUP);
   //pinMode(2, INPUT); //When setting the pin mode we have to use 2 instead of A1
-  //digitalWrite(2, HIGH); //Hack for getting around INPUT_PULLUP
+  digitalWrite(waterSensor, HIGH); //Hack for getting around INPUT_PULLUP
 
   mySerial.begin(9600);
-  mySerial.println("WasserSteuerung/V1.1"); // Say hello
+  mySerial.println("");
+  delay(500);
+  mySerial.println("");
+  mySerial.println("WasserSteuerung/V1.2"); // Say hello
   digitalWrite(waterValve, LOW); //Turn off valve
   
   //Take a series of readings from the water sensor and average them
+  mySerial.print("Adjusting ");
   waterAvg = 0;
   for(int x = 0 ; x < 8 ; x++)
   {
+    mySerial.print(".");
     waterAvg += analogRead(waterSensor);
-    delay(100);
+    delay(500);
   }
   waterAvg /= 8;
 
-  mySerial.print("Avg: ");
+  mySerial.print(" Avg: ");
   mySerial.println(waterAvg);
 
   mySerial.println("ACTION: opening Valve");
@@ -66,10 +76,10 @@ void setup()
 void loop() 
 {
   int waterDifference = abs(analogRead(waterSensor) - waterAvg);
-  mySerial.print("Diff: ");
-  mySerial.print(waterDifference);
-  mySerial.print(" / Read: ");
-  mySerial.println(analogRead(waterSensor));
+  mySerial.print("  Read: ");
+  mySerial.print(analogRead(waterSensor));
+  mySerial.print(" / Diff: ");
+  mySerial.println(waterDifference);
 
   if(waterDifference > maxDifference) // Water detected turn off valve
   {
@@ -82,10 +92,10 @@ void loop()
     {
       waterDifference = abs(analogRead(waterSensor) - waterAvg); //Take a new reading
 
-      mySerial.print("Diff: ");
-      mySerial.print(waterDifference);
-      mySerial.print(" / Read: ");
-      mySerial.println(analogRead(waterSensor));
+      mySerial.print("  Read: ");
+      mySerial.print(analogRead(waterSensor));
+      mySerial.print(" / Diff: ");
+      mySerial.println(waterDifference);
       delay(1000);
     } //Loop until we don't detect water AND 2 seconds of alarm have completed
 
